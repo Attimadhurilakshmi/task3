@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Advanced Quiz App</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://kit.fontawesome.com/5f3c3b5b.js" crossorigin="anonymous"></script>
+<script>
+function checkAnswer() {
+    let correctAnswer = "HTML";
+    let options = document.getElementsByName("q1");
+    let selected = "";
+
+    for (let i = 0; i < options.length; i++) {
+        if (options[i].checked) {
+            selected = options[i].value;
+        }
+    }
+
+    if (selected === correctAnswer) {
+        document.getElementById("result").innerHTML = "✅ Correct Answer!";
+    } else {
+        document.getElementById("result").innerHTML = "❌ Wrong Answer!";
+    }
+}
+</script>
+</head>
+
+<body>
+
+<div class="quiz-container">
+
+<h1><i class="fas fa-brain"></i> Quiz question</h1>
+
+<div class="progress-bar">
+<div id="progress"></div>
+</div>
+
+<div id="timer">Time: 30</div>
+
+<div id="question"><p>1. Which language is used to create web pages?</p>
+<input type="radio" name="q1" value="HTML"> HTML <br>
+<input type="radio" name="q1" value="Python"> Python <br>
+<input type="radio" name="q1" value="Java"> Java <br>
+<br>
+
+<p>2. Which language is used for styling web pages?</p>
+<input type="radio" name="q2" value="HTML"> HTML <br>
+<input type="radio" name="q2" value="CSS"> CSS <br>
+<input type="radio" name="q2" value="C++"> C++ <br>
+
+<br><p>3. Which language is used for website interactivity?</p>
+<input type="radio" name="q3" value="Java"> Java <br>
+<input type="radio" name="q3" value="JavaScript"> JavaScript <br>
+<input type="radio" name="q3" value="Python"> Python <br>
+
+<br><br>
+
+</button>
+<button onclick="showMessage()"> 
+<button id="nextBtn">submit</button>
+</form>
+
+<div id="options"></div>
+
+<h3 id="result"></h3>
+<button id="nextBtn">Completed</button>
+
+
+
+<div id="result"></div>
+
+</div>
+
+<script>
+
+let questions = []
+let currentQuestion = 0
+let score = 0
+let timer = 30
+let interval
+
+async function loadQuestions(){
+
+let res = await fetch('/api/questions')
+questions = await res.json()
+
+showQuestion()
+startTimer()
+
+}
+
+function showQuestion(){
+
+let q = questions[currentQuestion]
+
+document.getElementById("question").innerText = q.question
+
+let optionsHTML = ""
+
+q.options.forEach((opt,index)=>{
+
+optionsHTML += `
+<button class="option" onclick="selectAnswer('${opt}')">
+${opt}
+</button>
+`
+
+})
+
+document.getElementById("options").innerHTML = optionsHTML
+
+updateProgress()
+
+}
+
+function selectAnswer(answer){
+
+let correct = questions[currentQuestion].answer
+
+if(answer === correct){
+score++
+}
+
+}
+
+document.getElementById("nextBtn").onclick = ()=>{
+
+currentQuestion++
+
+if(currentQuestion < questions.length){
+
+showQuestion()
+resetTimer()
+
+}else{
+
+showResult()
+
+}
+
+}
+
+function showResult(){
+
+document.getElementById("result").innerHTML =
+`<h2>Your Score: ${score}/${questions.length}</h2>`
+
+document.getElementById("options").innerHTML=""
+document.getElementById("question").innerHTML="Quiz Completed!"
+
+clearInterval(interval)
+
+}
+
+function updateProgress(){
+
+let percent = ((currentQuestion+1)/questions.length)*100
+document.getElementById("progress").style.width = percent+"%"
+
+}
+
+function startTimer(){
+
+interval = setInterval(()=>{
+
+timer--
+document.getElementById("timer").innerText="Time: "+timer
+
+if(timer==0){
+
+currentQuestion++
+resetTimer()
+
+if(currentQuestion < questions.length){
+showQuestion()
+}else{
+showResult()
+}
+
+}
+
+},1000)
+
+}
+
+function resetTimer(){
+
+timer = 30
+
+}
+
+loadQuestions()
+
+</script>
+
+</body>
+</html>
